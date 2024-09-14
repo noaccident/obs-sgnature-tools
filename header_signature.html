@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>华为对象存储 --生成Header鉴权签名</title>
+</head>
+<link rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css"
+	integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+	crossorigin="anonymous">
+<body>
+	<div class="container-fluid" style="margin-top: 30px;">
+		<div class="row">
+			<div class="col-lg-8">
+				<div class="well">
+					<h3>生成Header鉴权签名：</h3>
+					<div class="row">
+						<div class="col-xs-6">
+							<pre>
+1. 计算StringToSign:
+					
+StringToSign = HTTP-Verb + "\n" + 
+Content-MD5 + "\n" + 
+Content-Type + "\n" + 
+Date + "\n" + 
+CanonicalizedHeaders + 
+CanonicalizedResource
+							</pre>
+						</div>
+						<div class="col-xs-6">
+							<pre>
+2. 计算Signature:
+					
+Signature = 
+Base64(Hmac-sha1(SK, StringToSign))
+
+3. 计算Authorization
+
+Authorization = "OBS " + AK + ":" + Signature
+							</pre>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<div class="col-lg-11">
+				<form id="postForm1" class="form-horizontal">
+					<div class="form-group">
+						<label for="ak" class="col-sm-1 control-label">AK</label> 
+						<div class="col-sm-6">
+							<input type="text" class="form-control" id="ak" placeholder="必选">
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="sk" class="col-sm-1 control-label">SK</label> 
+						<div class="col-sm-6">
+							<input type="text" class="form-control" id="sk" placeholder="必选" >
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="verb" class="col-sm-1 control-label">HTTP-Verb</label> 
+						<div class="col-sm-6">
+							<select class="form-control" id="verb">
+							  <option value="GET">GET</option>
+							  <option value="PUT">PUT</option>
+							  <option value="POST">POST</option>
+							  <option value="DELETE">DELETE</option>
+							  <option value="HEAD">HEAD</option>
+							</select>
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="md5" class="col-sm-1 control-label">Content-MD5</label> 
+						<div class="col-sm-6">
+							<input type="text" class="form-control" id="md5" placeholder="可选">
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="ctype" class="col-sm-1 control-label">Content-Type</label> 
+						<div class="col-sm-6">
+							<input type="text" class="form-control" id="ctype" placeholder="可选">
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="date" class="col-sm-1 control-label">Date</label> 
+						<div class="col-sm-6">
+							<div class="input-group">
+								<input type="text" class="form-control" id="date" placeholder="可选，  e.g Wed, 12 Dec 2018 08:58:38 GMT">
+								<span class="input-group-btn">
+							        <button class="btn btn-info" type="button" onclick="createDate()">Now</button>
+							    </span>
+						    </div>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-1 control-label">Canonicalized Headers</label> 
+						<div class="col-sm-6">
+							<table class="table table-bordered">
+                                 <tbody id="headers">
+                                    <tr>
+	                                    <td><input type="text" name="headerKey" size="30" placeholder="可选，如果设置则必须以x-obs-开头"/>:<input type="text" name="headerValue" size="30" placeholder="可选"/></td>
+	                                    <td><button size="auto" type="button" class="btn btn-primary" onclick="addHeader()"/>+</button></td>            
+                                    </tr>
+                                 </tbody>
+                            </table>
+						</div>
+					</div>
+				
+					<div class="form-group">
+						<label for="resource" class="col-sm-1 control-label">Canonicalized Resource</label> 
+						<div class="col-sm-6">
+							<input type="text" class="form-control" id="resource" placeholder="必选且必须以/开头，e.g: /bucketname/objectkey?query_string" value="/">
+						</div>
+					</div>
+					
+					<div class="form-group">
+						<div class="col-sm-offset-1 col-sm-6">
+							<button type="button" class="btn btn-primary" onclick="generate()">生成Header鉴权签名</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+		
+	</div>
+	
+	<div class="modal fade" tabindex="-1" role="dialog" id="myModal">
+	  <div class="modal-dialog" role="document">
+	    <div class="modal-content">
+	      <div class="modal-body">
+	      	StringToSign:
+	       	<div id="stringToSign" class="well" style="overflow: auto">
+	       	</div>
+	       	<p>
+	       	</p>
+	       	Authorization:
+	       	<div id="authorization" class="well">
+	       	</div>
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+	
+</body>
+	
+<script src="https://obs-community.obs.cn-north-1.myhuaweicloud.com/sign/js/jquery.min.js"></script>
+<script src="https://obs-community.obs.cn-north-1.myhuaweicloud.com/sign/js/bootstrap.min.js"></script>
+<script src="https://obs-community.obs.cn-north-1.myhuaweicloud.com/sign/js/crypto-js.min.js"></script>
+<script type="text/javascript">
+	
+	function createDate(){
+		$('#date').val(new Date().toUTCString());
+	}
+	
+	function addHeader(){
+         var tr = $('<tr></tr>')
+         tr.append('<td><input type="text" name="headerKey" size="30" placeholder="可选，如果设置则必须以x-obs-开头"/>:<input type="text" name="headerValue" size="30" placeholder="可选"/></td><td><div class="btn-group"><button class="btn btn-primary" onclick="addHeader()">+</button><button class="btn btn-danger" onclick="removeHeader(this)">-</button></div></td>');
+         tr.appendTo('#headers')
+	}
+	
+	function removeHeader(item){
+		var $item = $(item);
+        $item.parent().parent().parent().remove();
+    } 
+	
+	function generate(){
+		var ak = $.trim($('#ak').val());
+        var sk = $.trim($('#sk').val());
+        var date = $.trim($('#date').val());
+        var resource = $.trim($('#resource').val());
+        
+        if(ak === ''){
+        	window.alert('AK输入有误！');
+        	$('#ak').focus();
+        	return;
+        }
+        
+        if(sk === ''){
+        	window.alert('SK输入有误！');
+        	$('#sk').focus();
+        	return;
+        }
+        
+        var headerKeys =  $('#headers input[name=headerKey]');
+        var headerValues =  $('#headers input[name=headerValue]');
+        
+        var index;
+        var keys = [];
+        var headers = {};
+        var obsData = '';
+        for(index=0;index<headerKeys.length;index++){
+        	var input = $(headerKeys[index]);
+        	var headerKey = $.trim(input.val());
+        	if(headerKey === ''){
+        		continue;
+        	}
+        	//转小写
+        	headerKey = headerKey.toLowerCase();
+        	if(headerKey.indexOf('x-obs-') !== 0){
+        		window.alert('Canonicalized Headers输入有误！');
+        		input.focus();
+        		return;
+        	}
+        	if (headerKey === 'x-obs-date') {
+        		obsData = $.trim($(headerValues[index]).val());
+			}
+        	keys.push(headerKey);
+        	headers[headerKey] = $.trim($(headerValues[index]).val());
+        }
+
+        if (obsData) {
+        	date = '';
+		}
+
+		if(!date && !obsData){
+			window.alert('Date输入有误！');
+			$('#date').focus();
+			return;
+		}
+
+        if(resource === '' || resource.indexOf('/') !== 0){
+        	window.alert('Canonicalized Resource输入有误！');
+        	$('#resource').focus();
+        	return;
+        }
+        
+        var stringToSign = [];
+        
+        stringToSign.push($('#verb').val());
+        
+        stringToSign.push($.trim($('#md5').val()));
+		        
+        stringToSign.push($.trim($('#ctype').val()));
+        
+        stringToSign.push(date);
+        
+        //排序
+        keys = keys.sort();
+        for(index=0;index<keys.length;index++){
+        	var key = keys[index];
+        	stringToSign.push(key + ':' + headers[key]);
+        }
+		
+        var url = resource;
+        var query = '';
+        if((index=resource.indexOf('?')) > 0){
+        	url = resource.slice(0, index);
+        	query = resource.slice(index+1, resource.length).split('&');
+        	var queryKeys = [];
+        	var queries = {};
+        	for(index=0;index<query.length;index++){
+        		var q = query[index].split('=');
+        		queryKeys.push(q[0]);
+        		if(q.length == 2){
+        			queries[q[0]] = q[1];
+        		}else{
+        			queries[q[0]] = '';
+        		}
+        	}
+        	query = '?';
+        	queryKeys = queryKeys.sort();
+        	for(index=0;index<queryKeys.length;index++){
+        		query += queryKeys[index];
+        		if(queries[queryKeys[index]] !== ''){
+        			query += '=' + queries[queryKeys[index]];
+        		}
+        		if(index !== queryKeys.length-1){
+        			query += '&';
+        		}
+        	}
+        }
+        
+        resource = url + query;
+        
+        stringToSign.push(resource);
+        
+        var _stringToSign = stringToSign.join('\n');
+        var stringToSignToShow = stringToSign.join('<br>');
+        
+        var signature = CryptoJS.HmacSHA1(_stringToSign, sk).toString(CryptoJS.enc.Base64);
+        var authorization = 'OBS ' + ak + ':' + signature;
+        
+        $('#stringToSign').html(stringToSignToShow);
+        $('#authorization').html(authorization);
+        
+        $('#myModal').modal();
+	}
+	
+</script>
+
+</html>
