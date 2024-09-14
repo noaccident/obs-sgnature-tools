@@ -30,7 +30,7 @@ CanonicalizedResource
 2. Compute Signature:
 					
 Signature = 
-Base64(Hmac-sha1(SK, StringToSign))
+Base64(Hmac-sha1(SK, UTF-8-Encoding-Of(StringToSign)))
 
 3. Compute Authorization
 

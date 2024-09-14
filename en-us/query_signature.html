@@ -30,7 +30,7 @@ CanonicalizedResource
 2. Compute Signature:
 					
 Signature = 
-UrlEncode(Base64(Hmac-sha1(SK, StringToSign)))
+UrlEncode(Base64(Hmac-sha1(SK, UTF-8-Encoding-Of(StringToSign))))
 
 3. Compute Url Query
 SignedUrlQuery =
