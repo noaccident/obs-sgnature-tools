@@ -8,6 +8,7 @@
 	href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css"
 	integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
 	crossorigin="anonymous">
+<link rel="stylesheet" href="./css/base.css">
 <body>
 	<div class="container-fluid" style="margin-top: 30px;">
 		<div class="row">
@@ -15,7 +16,7 @@
 				<div class="well">
 					<h3>生成Query鉴权签名：</h3>
 					<div class="row">
-						<div class="col-xs-6">
+						<div class="col-xs-5">
 							<pre>
 1. 计算StringToSign:
 					
@@ -27,16 +28,16 @@ CanonicalizedHeaders +
 CanonicalizedResource
 							</pre>
 						</div>
-						<div class="col-xs-6">
+						<div class="col-xs-">
 							<pre>
 2. 计算Signature:
 					
 Signature = 
 UrlEncode(Base64(Hmac-sha1(SK, StringToSign)))
 
-3. 计算Url
-Url = Endpoint + "?" + "AccessKeyId=" + AK + 
-"&Expires=" + Expires + "&Signature=" + Signature
+3. 计算签名Url中的Query
+SignedUrlQuery =
+?AccessKeyId=AK&Expires=Expires&Signature=Signature[&x-obs-security-token=securityToken]
 							</pre>
 						</div>
 					</div>
@@ -135,8 +136,8 @@ Url = Endpoint + "?" + "AccessKeyId=" + AK +
 	       	</div>
 	       	<p>
 	       	</p>
-	       	SignedUrl:
-	       	<div id="signedUrl" class="well">
+	       	SignedUrlQuery:
+	       	<div id="signedUrlQuery" class="well word">
 	       	</div>
 	      </div>
 	      <div class="modal-footer">
@@ -180,11 +181,6 @@ Url = Endpoint + "?" + "AccessKeyId=" + AK +
         	window.alert('SK输入有误！');
         	$('#sk').focus();
         	return;
-        }
-        
-        var ep = $.trim($('#ep').val());
-        if(ep === ''){
-        	ep = 'http://your-endpoint';
         }
         
         if(expires === '' || !(expires=parseInt(expires))){
@@ -284,10 +280,16 @@ Url = Endpoint + "?" + "AccessKeyId=" + AK +
         var stringToSignToShow = stringToSign.join('<br>');
         
         var signature = CryptoJS.HmacSHA1(_stringToSign, sk).toString(CryptoJS.enc.Base64);
-        var signedUrl = ep + '<br>?AccessKeyId=' + ak + '<br>&Expires=' + expires + '<br>&Signature=' + encodeURIComponent(signature)
+
+        var signedUrlQuery = '?AccessKeyId=' + ak + '&Expires=' + expires + '&Signature=' + encodeURIComponent(signature);
+
+		const st = "x-obs-security-token";
+		if (keys.includes(st)) {
+			signedUrlQuery += `&${st}=${headers[st]}`;
+		}
         
         $('#stringToSign').html(stringToSignToShow);
-        $('#signedUrl').html(signedUrl);
+        $('#signedUrlQuery').html(signedUrlQuery);
         
         $('#myModal').modal();
 	}
