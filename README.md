@@ -1,4 +1,6 @@
-# Signature Generators
+English | [简体中文](./README_CN.md)
+
+# OBS Signature Generators
 
 OBS offers visualized tools for you to easily generate signatures.
 
