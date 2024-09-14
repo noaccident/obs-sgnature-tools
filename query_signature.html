@@ -97,9 +97,14 @@ SignedUrlQuery =
 						<div class="col-sm-6">
 							<table class="table table-bordered">
                                  <tbody id="headers">
-                                    <tr>
-	                                    <td><input type="text" name="headerKey" size="30" placeholder="可选，如果设置则必须以x-obs-开头"/>:<input type="text" name="headerValue" size="30" placeholder="可选"/></td>
-	                                    <td><button size="auto" type="button" class="btn btn-primary" onclick="addHeader()"/>+</button></td>            
+									<tr>
+	                                    <td class="flex align-center justify-between">
+											<input type="text" class="form-control" name="headerKey" size="30" placeholder="可选，如果设置则必须以x-obs-开头"/>
+											：
+											<input type="text" class="form-control" name="headerValue" size="30" placeholder="可选"/></td>
+	                                    <td>
+											<button size="auto" type="button" class="btn btn-primary" onclick="addHeader()">+</button>
+										</td>            
                                     </tr>
                                  </tbody>
                             </table>

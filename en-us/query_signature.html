@@ -97,9 +97,14 @@ SignedUrlQuery =
 						<div class="col-sm-6">
 							<table class="table table-bordered">
                                  <tbody id="headers">
-                                    <tr>
-	                                    <td><input style="width: 260px" type="text" name="headerKey" size="30" placeholder="Optional. Starts the header with x-obs-."/>:<input type="text" name="headerValue" size="30" placeholder="Optional"/></td>
-	                                    <td><button size="auto" type="button" class="btn btn-primary" onclick="addHeader()"/>+</button></td>            
+									<tr>
+										<td class="flex align-center justify-between">
+											<input type="text" class="form-control" name="headerKey" size="30" placeholder="Optional. Starts the header with x-obs-."/>
+											:
+											<input type="text" class="form-control" name="headerValue" size="30" placeholder="Optional"/></td>
+	                                    <td>
+											<button size="auto" type="button" class="btn btn-primary" onclick="addHeader()">+</button>
+										</td>             
                                     </tr>
                                  </tbody>
                             </table>
