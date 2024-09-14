@@ -208,8 +208,14 @@ Authorization = "OBS " + AK + ":" + Signature
         	if (headerKey === 'x-obs-date') {
         		obsData = $.trim($(headerValues[index]).val());
 			}
-        	keys.push(headerKey);
-        	headers[headerKey] = $.trim($(headerValues[index]).val());
+			if (keys.includes(headerKey)) {
+				let value = headers[headerKey] + ",";
+				value += $.trim($(headerValues[index]).val());
+				headers[headerKey] = value;
+			} else {
+				keys.push(headerKey);
+        		headers[headerKey] = $.trim($(headerValues[index]).val());
+			}
         }
 
         if (obsData) {
